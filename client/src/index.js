@@ -3,18 +3,16 @@ import ReactDOM from 'react-dom';
 import Map from './components/Map';
 import GoButton from './components/GoButton'
 
-const cells = [
-  [true, false, false, false, false, true, false, false, false, false],
-  [false, true, false, false, false, true, false, false, false, false],
-  [false, false, true, false, false, true, false, false, false, false],
-  [false, false, false, true, false, true, false, false, false, false],
-  [false, false, false, false, true, true, false, false, false, false],
-  [true, false, false, false, false, true, false, false, false, false],
-  [false, true, false, false, false, true, false, false, false, false],
-  [false, false, true, false, false, true, false, false, false, false],
-  [false, false, false, true, false, true, false, false, false, false],
-  [false, false, false, false, true, true, false, false, false, false]
-]
+const cells = []
+
+for (let i = 0; i < 50; ++i) {
+  const row = []
+  for (let j = 0; j < 50; ++j) {
+    row.push(Math.random() > 0.8)
+  }
+
+  cells.push(row)
+}
 
 const start = [0, cells.length - 1]
 const end = [cells[0].length - 1, 0]

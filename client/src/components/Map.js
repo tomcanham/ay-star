@@ -8,8 +8,8 @@ const cellStyle = {
 const MapCell = (props) => {
   const { style, onChange, children } = props
 
-  return children ? 
-    <span style={style} onClick={() => onChange()}>{children}</span> : 
+  return children ?
+    <span style={style} onClick={() => onChange()}>{children}</span> :
     <span style={style} onClick={() => onChange()}>&nbsp;</span>
 }
 
@@ -26,45 +26,50 @@ const rowStyle = {
   width: '100%'
 }
 
-const MapRow = (props) => {
-  const { width, rowNumber, cells, style, start, end, onCellChange } = props
-  const cellObjects = []
-  const percent = Math.floor((1 / width) * 100)
-
-  for (let x = 0; x < width; ++x) {
-    let content
-
-    const styleAdd = { width: `${percent}%` }
-    if (start[0] === x && start[1] === rowNumber) {
-      content = 'START'
-      styleAdd.background = 'lime'
-    } else if (end[0] === x && end[1] === rowNumber) {
-      content = 'END'
-      styleAdd.background = 'lime'
-    } else if (cells[x]) {
-      styleAdd.background = 'silver'
-    }
-  
-    const style = Object.assign({}, cellStyle, styleAdd)
-
-    cellObjects.push(<MapCell
-      key={`cell-${x}-${rowNumber}`}
-      isBlocked={cells[x]}
-      style={style}
-      onChange={() => onCellChange(x, rowNumber)}>{content}</MapCell>)
+class MapRow extends React.Component {
+  static propTypes = {
+    width: PropTypes.number,
+    rowNumber: PropTypes.number,
+    cells: PropTypes.arrayOf(PropTypes.bool),
+    style: PropTypes.object,
+    start: PropTypes.arrayOf(PropTypes.number),
+    end: PropTypes.arrayOf(PropTypes.number),
+    onCellChange: PropTypes.func
   }
 
-  return <div style={style}>{cellObjects}</div>
-}
+  onCellChange(x, y) {
+    this.props.onCellChange(x, y)
+    this.forceUpdate()
+  }
 
-MapRow.propTypes = {
-  width: PropTypes.number,
-  rowNumber: PropTypes.number,
-  cells: PropTypes.arrayOf(PropTypes.bool),
-  style: PropTypes.object,
-  start: PropTypes.arrayOf(PropTypes.number),
-  end: PropTypes.arrayOf(PropTypes.number),
-  onCellChange: PropTypes.func
+  render() {
+    const { width, rowNumber, cells, style, start, end } = this.props
+    const cellObjects = []
+    const percent = Math.floor((1 / width) * 100)
+
+    for (let x = 0; x < width; ++x) {
+      let content
+
+      const styleAdd = { width: `${percent}%` }
+      if (start[0] === x && start[1] === rowNumber) {
+        styleAdd.background = 'lime'
+      } else if (end[0] === x && end[1] === rowNumber) {
+        styleAdd.background = 'pink'
+      } else if (cells[x]) {
+        styleAdd.background = 'silver'
+      }
+
+      const style = Object.assign({}, cellStyle, styleAdd)
+
+      cellObjects.push(<MapCell
+        key={`cell-${x}-${rowNumber}`}
+        isBlocked={cells[x]}
+        style={style}
+        onChange={() => this.onCellChange(x, rowNumber)}>{content}</MapCell>)
+    }
+
+    return <div style={style}>{cellObjects}</div>
+  }
 }
 
 const mapStyle = {
@@ -82,7 +87,6 @@ class Map extends React.Component {
 
   onCellChange(x, y) {
     this.props.onCellChange(x, y)
-    this.forceUpdate()
   }
 
   render() {
