@@ -166,12 +166,17 @@ class Map extends React.Component {
       <div style={mapStyle}>{rows}</div>
         <div style={{width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
           <GoButton onClick={() => this.onGoClicked()} />
-          <div>
-            <input
-              type="checkbox"
-              checked={includeDiagonals}
-              onChange={(e) => this.handleIncludeDiagonalsChanged(e)} />
-            <label>Include diagonals?</label>
+          <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+            <div style={{flexBasis: '50%'}}>
+              <input
+                type="checkbox"
+                checked={includeDiagonals}
+                onChange={(e) => this.handleIncludeDiagonalsChanged(e)} />
+              <label>Include diagonals?</label>
+            </div>
+            <button
+              style={{backgroundColor: 'green', fontSize: '1.2rem', height: '50px'}}
+              onClick={() => location.reload()}>Rebuild</button>
           </div>
         </div>
     </div>
