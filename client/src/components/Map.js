@@ -1,22 +1,55 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import GoButton from './GoButton'
+import { STATES, Pos, PathMap } from '../PathMap'
+import findPath from '../findPath'
 
 const cellStyle = {
   border: '1px solid black'
 }
 
-const MapCell = (props) => {
-  const { style, onChange, children } = props
+const getStateStyle = (state) => {
+  switch(state) {
+    case STATES.START:
+      return { background: 'pink' }
 
-  return children ?
-    <span style={style} onClick={() => onChange()}>{children}</span> :
-    <span style={style} onClick={() => onChange()}>&nbsp;</span>
+    case STATES.END:
+      return { background: 'pink' }
+
+    case STATES.BLOCKED:
+      return { background: 'black' }
+
+    case STATES.OPEN:
+      return { background: 'blue' }
+
+    case STATES.CLOSED:
+      return { background: 'red' }
+
+    case STATES.TENTATIVE:
+      return { background: 'yellow' }
+
+    case STATES.PATH:
+      return { background: 'green' }
+
+    default:
+      return {}
+  }
+}
+
+const MapCell = (props) => {
+  const { pos, cells, style, onChange } = props
+  const state = cells.getState(pos)
+  const styleAdd = getStateStyle(state)
+  const finalStyle = Object.assign({}, style, styleAdd)
+
+  return <span style={finalStyle} title={state} onClick={() => onChange(pos)}>&nbsp;</span>
 }
 
 MapCell.propTypes = {
-  style: PropTypes.object,
-  onChange: PropTypes.func,
-  children: PropTypes.any
+  pos: PropTypes.instanceOf(Pos).isRequired,
+  cells: PropTypes.instanceOf(PathMap).isRequired,
+  style: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired
 }
 
 const rowStyle = {
@@ -28,44 +61,29 @@ const rowStyle = {
 
 class MapRow extends React.Component {
   static propTypes = {
-    width: PropTypes.number,
-    rowNumber: PropTypes.number,
-    cells: PropTypes.arrayOf(PropTypes.bool),
-    style: PropTypes.object,
-    start: PropTypes.arrayOf(PropTypes.number),
-    end: PropTypes.arrayOf(PropTypes.number),
-    onCellChange: PropTypes.func
-  }
-
-  onCellChange(x, y) {
-    this.props.onCellChange(x, y)
-    this.forceUpdate()
+    cells: PropTypes.instanceOf(PathMap).isRequired,
+    rowNumber: PropTypes.number.isRequired,
+    style: PropTypes.object.isRequired,
+    onCellChange: PropTypes.func.isRequired
   }
 
   render() {
-    const { width, rowNumber, cells, style, start, end } = this.props
+    const { cells, rowNumber, style, onCellChange } = this.props
+    const { width, height } = cells
+  
     const cellObjects = []
     const percent = Math.floor((1 / width) * 100)
 
     for (let x = 0; x < width; ++x) {
-      let content
-
-      const styleAdd = { width: `${percent}%` }
-      if (start[0] === x && start[1] === rowNumber) {
-        styleAdd.background = 'lime'
-      } else if (end[0] === x && end[1] === rowNumber) {
-        styleAdd.background = 'pink'
-      } else if (cells[x]) {
-        styleAdd.background = 'silver'
-      }
-
-      const style = Object.assign({}, cellStyle, styleAdd)
-
+      const style = Object.assign({}, cellStyle, { width: `${percent}%` })
+      const pos = new Pos([x, rowNumber])
+    
       cellObjects.push(<MapCell
         key={`cell-${x}-${rowNumber}`}
-        isBlocked={cells[x]}
+        pos={pos}
+        cells={cells}
         style={style}
-        onChange={() => this.onCellChange(x, rowNumber)}>{content}</MapCell>)
+        onChange={onCellChange} />)
     }
 
     return <div style={style}>{cellObjects}</div>
@@ -79,20 +97,24 @@ const mapStyle = {
 
 class Map extends React.Component {
   static propTypes = {
-    cells: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.bool)),
-    start: PropTypes.arrayOf(PropTypes.number),
-    end: PropTypes.arrayOf(PropTypes.number),
-    onCellChange: PropTypes.func
+    cells: PropTypes.instanceOf(PathMap).isRequired
   }
 
-  onCellChange(x, y) {
-    this.props.onCellChange(x, y)
+  async onGoClicked() {
+    const { cells } = this.props
+    const setCellState = (pos, state) => {
+      cells.setState(pos, state)
+    }
+
+    await findPath(cells, setCellState)
+    this.forceUpdate()
   }
 
   render() {
-    const { cells, start, end } = this.props
-    const height = cells.length
-    const width = cells[0].length
+    const { cells } = this.props
+    const onCellChange = (pos) => cells.toggleBlocked(pos)
+    const height = cells.height
+    const width = cells.width
     const percent = Math.floor((1 / width) * 100)
     const style = Object.assign({}, rowStyle, { height: `${percent}%` })
 
@@ -100,16 +122,16 @@ class Map extends React.Component {
     for (let y = 0; y < height; ++y) {
       rows.push(<MapRow
         key={`row-${y}`}
-        width={width}
         rowNumber={y}
-        cells={cells[y]}
+        cells={cells}
         style={style}
-        start={start}
-        end={end}
-        onCellChange={(x, y) => this.onCellChange(x, y)} />)
+        onCellChange={onCellChange} />)
     }
 
-    return <div style={mapStyle}>{rows}</div>
+    return <div>
+      <div style={mapStyle}>{rows}</div>
+      <GoButton onClick={() => this.onGoClicked()} />
+    </div>
   }
 }
 

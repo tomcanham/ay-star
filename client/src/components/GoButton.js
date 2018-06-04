@@ -18,4 +18,8 @@ const GoButton = (props) => {
   return <button style={style} onClick={onClick}>Go!</button>
 }
 
+GoButton.propTypes = {
+  onClick: PropTypes.func.isRequired
+}
+
 export default GoButton;
