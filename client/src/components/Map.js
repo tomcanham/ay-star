@@ -36,20 +36,22 @@ const getStateStyle = (state) => {
   }
 }
 
-const MapCell = (props) => {
-  const { pos, cells, style, onChange } = props
-  const state = cells.getState(pos)
-  const styleAdd = getStateStyle(state)
-  const finalStyle = Object.assign({}, style, styleAdd)
+class MapCell extends React.Component {
+  static propTypes = {
+    pos: PropTypes.instanceOf(Pos).isRequired,
+    cells: PropTypes.instanceOf(PathMap).isRequired,
+    style: PropTypes.object.isRequired,
+    onChange: PropTypes.func.isRequired
+  }
 
-  return <span style={finalStyle} title={state} onClick={() => onChange(pos)}>&nbsp;</span>
-}
-
-MapCell.propTypes = {
-  pos: PropTypes.instanceOf(Pos).isRequired,
-  cells: PropTypes.instanceOf(PathMap).isRequired,
-  style: PropTypes.object.isRequired,
-  onChange: PropTypes.func.isRequired
+  render() {
+    const { pos, cells, style, onChange } = this.props
+    const state = cells.getState(pos)
+    const styleAdd = getStateStyle(state)
+    const finalStyle = Object.assign({}, style, styleAdd)
+  
+    return <span style={finalStyle} title={state} onClick={() => onChange(pos)}>&nbsp;</span>
+  }
 }
 
 const rowStyle = {
@@ -97,16 +99,28 @@ const mapStyle = {
 
 class Map extends React.Component {
   static propTypes = {
-    cells: PropTypes.instanceOf(PathMap).isRequired
+    cells: PropTypes.instanceOf(PathMap).isRequired,
+    includeDiagonals: PropTypes.bool.isRequired
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 
   async onGoClicked() {
-    const { cells } = this.props
-    const setCellState = (pos, state) => {
+    const { cells, includeDiagonals } = this.props
+    let counter = 0
+    const setCellState = async (pos, state) => {
       cells.setState(pos, state)
+
+      ++counter
+      if (counter % 100 === 0) {
+        await this.sleep(1)
+        this.forceUpdate()
+      }
     }
 
-    await findPath(cells, setCellState)
+    await findPath(cells, includeDiagonals, setCellState)
     this.forceUpdate()
   }
 

@@ -135,18 +135,23 @@ export class PathMap {
     }
   }
 
-  around(pos, requireClear = true) {
+  around(pos, requireClear = true, includeDiagonals = true) {
     const results = []
-    const neighbors = [
-      [-1, -1],
+    let neighbors = [
       [-1, 0],
-      [-1, 1],
       [0, -1],
       [0, 1],
-      [1, -1],
-      [1, 0],
-      [1, 1]
+      [1, 0]
     ]
+
+    if (includeDiagonals) {
+      neighbors = neighbors.concat([
+        [-1, -1],
+        [-1, 1],
+        [1, -1],
+        [1, 1]
+      ])
+    }
 
     for (const neighbor of neighbors) {
       const [x, y] = neighbor

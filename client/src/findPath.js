@@ -16,14 +16,14 @@ const heuristic = ([x1, y1], [x2, y2]) => {
   return distX + distY
 }
 
-const findPath = async function (cells, setState = () => {}) {
+const findPath = async function (cells, includeDiagonals = true, setState = async () => {}) {
   const posEqual = ([x1, y1], [x2, y2]) => {
     return (x1 === x2) && (y1 === y2)
   }
 
-  const reconstructPath = (cameFrom, current) => {
+  const reconstructPath = async (cameFrom, current) => {
     while (cameFrom.has(current)) {
-      setState(current, STATES.PATH)
+      await setState(current, STATES.PATH)
       current = cameFrom.get(current)
     }
   }
@@ -40,7 +40,7 @@ const findPath = async function (cells, setState = () => {}) {
   const goal = cells.end.toXY()
 
   open.add(start)
-  setState(start, STATES.OPEN)
+  await setState(start, STATES.OPEN)
   fscore.insert(cost(start, goal), start)
 
   gscore.add(start, 0)
@@ -56,13 +56,13 @@ const findPath = async function (cells, setState = () => {}) {
     closed.add(current)
 
     if (!posEqual(current, start)) {
-      setState(current, STATES.CLOSED)
+      await setState(current, STATES.CLOSED)
     } else {
-      setState(current, STATES.PATH)
+      await setState(current, STATES.PATH)
     }
 
     const pos = new Pos(current)
-    const neighbors = cells.around(pos, false).map((pos) => pos.toXY())
+    const neighbors = cells.around(pos, false, includeDiagonals).map((pos) => pos.toXY())
     for (const neighbor of neighbors) {
       if (closed.has(neighbor)) {
         continue
@@ -79,7 +79,7 @@ const findPath = async function (cells, setState = () => {}) {
 
       if (!open.has(neighbor)) {
         open.add(neighbor)
-        setState(neighbor, STATES.OPEN)
+        await setState(neighbor, STATES.OPEN)
       }
 
       if (tentativeGScore >= neighborGScore) {
@@ -90,7 +90,7 @@ const findPath = async function (cells, setState = () => {}) {
       cameFrom.add(neighbor, current)
       gscore.set(neighbor, tentativeGScore)
       fscore.insert(tentativeGScore + cost(neighbor, goal), neighbor)
-      setState(neighbor, STATES.TENTATIVE)
+      await setState(neighbor, STATES.TENTATIVE)
     }
   }
 
