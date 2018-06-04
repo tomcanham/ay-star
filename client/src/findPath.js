@@ -16,7 +16,12 @@ const heuristic = ([x1, y1], [x2, y2]) => {
   return distX + distY
 }
 
-const findPath = async function (cells, includeDiagonals = true, setState = async () => {}) {
+const findPath = async function ({ start,
+  goal,
+  neighbors,
+  includeDiagonals = true, 
+  setState = async () => {}
+}) {
   const posEqual = ([x1, y1], [x2, y2]) => {
     return (x1 === x2) && (y1 === y2)
   }
@@ -35,9 +40,6 @@ const findPath = async function (cells, includeDiagonals = true, setState = asyn
 
   const fscore = new FibonacciHeap()
   const gscore = new PosMap()
-
-  const start = cells.start.toXY()
-  const goal = cells.end.toXY()
 
   open.add(start)
   await setState(start, STATES.OPEN)
@@ -61,9 +63,8 @@ const findPath = async function (cells, includeDiagonals = true, setState = asyn
       await setState(current, STATES.PATH)
     }
 
-    const pos = new Pos(current)
-    const neighbors = cells.around(pos, false, includeDiagonals).map((pos) => pos.toXY())
-    for (const neighbor of neighbors) {
+    const neighborCells = neighbors(current)
+    for (const neighbor of neighborCells) {
       if (closed.has(neighbor)) {
         continue
       }

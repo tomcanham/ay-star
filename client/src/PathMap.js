@@ -65,8 +65,6 @@ export class PathMap {
     this.end = end
     this.blockFrequency = blockFrequency
     this.buildBlocks()
-
-    // console.log("New pathmap built:", this)
   }
 
   buildBlocks() {
@@ -118,7 +116,6 @@ export class PathMap {
   }
 
   isValid(rawPos, requireClear = true) {
-    // console.log("ISVALID:", rawPos)
     const pos = Pos.toPos(rawPos)
 
     if (!(pos.x >= 0 && pos.x < this.width && pos.y >= 0 && pos.y < this.height )) {
@@ -135,7 +132,33 @@ export class PathMap {
     }
   }
 
-  around(pos, requireClear = true, includeDiagonals = true) {
+  clearStates() {
+    for (let y = 0; y < this.height; ++y) {    
+      for (let x = 0; x < this.width; ++x) {
+        const pos = new Pos([x, y])
+        const existingState = this.getState(pos)
+
+        if ([
+          STATES.OPEN,
+          STATES.CLOSED,
+          STATES.TENTATIVE,
+          STATES.PATH
+        ].includes(existingState)) {
+          if (pos.isEqual(this.start)) {
+            this.setState(pos, STATES.START)
+          } else if (pos.isEqual(this.end)) {
+            this.setState(pos, STATES.END)
+          } else {
+            this.setState(pos, STATES.CLEAR)
+          }
+        }
+      }
+    }
+  }
+
+  around(rawPos, requireClear = true, includeDiagonals = true) {
+    const pos = Pos.toPos(rawPos)
+
     const results = []
     let neighbors = [
       [-1, 0],

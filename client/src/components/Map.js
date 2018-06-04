@@ -99,8 +99,12 @@ const mapStyle = {
 
 class Map extends React.Component {
   static propTypes = {
-    cells: PropTypes.instanceOf(PathMap).isRequired,
-    includeDiagonals: PropTypes.bool.isRequired
+    cells: PropTypes.instanceOf(PathMap).isRequired
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = { includeDiagonals: true }
   }
 
   sleep(ms) {
@@ -108,7 +112,9 @@ class Map extends React.Component {
   }
 
   async onGoClicked() {
-    const { cells, includeDiagonals } = this.props
+    const { cells } = this.props
+    const { includeDiagonals } = this.state
+
     let counter = 0
     const setCellState = async (pos, state) => {
       cells.setState(pos, state)
@@ -119,13 +125,27 @@ class Map extends React.Component {
         this.forceUpdate()
       }
     }
-
-    await findPath(cells, includeDiagonals, setCellState)
+    const neighbors = ([x, y]) => cells.around([x, y], false, includeDiagonals).map((pos) => pos.toXY())
+    const start = cells.start.toXY()
+    const goal = cells.end.toXY()
+  
+    await findPath({ start, goal, neighbors, setState: setCellState })
     this.forceUpdate()
+  }
+
+  handleIncludeDiagonalsChanged(event) {
+    const newChecked = event.target.checked
+
+    if (newChecked !== this.state.includeDiagonals) {
+      const { cells } = this.props
+      cells.clearStates()
+      this.setState({ includeDiagonals: newChecked })
+    }
   }
 
   render() {
     const { cells } = this.props
+    const { includeDiagonals } = this.state
     const onCellChange = (pos) => cells.toggleBlocked(pos)
     const height = cells.height
     const width = cells.width
@@ -144,7 +164,16 @@ class Map extends React.Component {
 
     return <div>
       <div style={mapStyle}>{rows}</div>
-      <GoButton onClick={() => this.onGoClicked()} />
+        <div style={{width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+          <GoButton onClick={() => this.onGoClicked()} />
+          <div>
+            <input
+              type="checkbox"
+              checked={includeDiagonals}
+              onChange={(e) => this.handleIncludeDiagonalsChanged(e)} />
+            <label>Include diagonals?</label>
+          </div>
+        </div>
     </div>
   }
 }

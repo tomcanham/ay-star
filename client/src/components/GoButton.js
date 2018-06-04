@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 const style = {
+  flexBasis: '50%',
   display: 'flex',
   flexDirection: 'row',
   justifyContent: 'space-around',

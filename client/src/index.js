@@ -17,7 +17,7 @@ const cells = new PathMap(WIDTH, HEIGHT, start, end, BLOCKFREQUENCY)
 
 ReactDOM.render(
   <div>
-    <Map cells={cells} includeDiagonals={includeDiagonals} />
+    <Map cells={cells} />
   </div>,
   document.getElementById('root')
 );
