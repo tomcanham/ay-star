@@ -1,6 +1,6 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Map from './components/Map';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import Map from './components/Map'
 import findPath from './findPath'
 import { STATES, Pos, PathMap } from './PathMap'
 
@@ -20,6 +20,6 @@ ReactDOM.render(
     <Map cells={cells} />
   </div>,
   document.getElementById('root')
-);
+)
 
 module.hot.accept();
