@@ -10,7 +10,8 @@ const style = {
   margin: '10px',
   height: '50px',
   backgroundColor: 'yellow',
-  fontSize: '2rem'
+  fontSize: '1.5rem',
+  borderRadius: '10px'
 }
 
 const GoButton = (props) => {

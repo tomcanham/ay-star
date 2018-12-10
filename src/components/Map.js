@@ -71,7 +71,7 @@ class MapRow extends React.Component {
 
   render() {
     const { cells, rowNumber, style, onCellChange } = this.props
-    const { width, height } = cells
+    const { width } = cells
   
     const cellObjects = []
     const percent = Math.floor((1 / width) * 100)
@@ -163,22 +163,22 @@ class Map extends React.Component {
     }
 
     return <div>
-      <div style={mapStyle}>{rows}</div>
-        <div style={{width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-          <GoButton onClick={() => this.onGoClicked()} />
-          <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-            <div style={{flexBasis: '50%'}}>
-              <input
-                type="checkbox"
-                checked={includeDiagonals}
-                onChange={(e) => this.handleIncludeDiagonalsChanged(e)} />
-              <label>Include diagonals?</label>
-            </div>
-            <button
-              style={{backgroundColor: 'green', fontSize: '1.2rem', height: '50px'}}
-              onClick={() => location.reload()}>Rebuild</button>
+      <div style={{width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+        <GoButton onClick={() => this.onGoClicked()} />
+        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+          <div style={{flexBasis: '50%'}}>
+            <input
+              type="checkbox"
+              checked={includeDiagonals}
+              onChange={(e) => this.handleIncludeDiagonalsChanged(e)} />
+            <label>Include diagonals?</label>
           </div>
+          <button
+            style={{backgroundColor: 'green', fontSize: '1.2rem', height: '50px', borderRadius: '10px'}}
+            onClick={() => location.reload()}>Rebuild</button>
         </div>
+      </div>
+      <div style={mapStyle}>{rows}</div>
     </div>
   }
 }

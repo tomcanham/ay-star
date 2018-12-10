@@ -5,7 +5,7 @@ import findPath from './findPath'
 import { STATES, Pos, PathMap } from './PathMap'
 
 const WIDTH = 30
-const HEIGHT = 35
+const HEIGHT = 30
 
 const start = new Pos([0, HEIGHT - 1])
 const end = new Pos([WIDTH - 1, 0])
