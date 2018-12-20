@@ -57,6 +57,53 @@ export class Pos {
   }
 }
 
+class Chamber {
+  constructor(width, height, offsetX, offsetY) {
+    this.width = width
+    this.height = height
+    this.offsetX = offsetX
+    this.offsetY = offsetY
+  }
+
+  subdivide() {
+    let chambers
+    if (this.width > 2 && this.height > 2) {
+      const newWidth = Math.floor(this.width / 2)
+      const newHeight = Math.floor(this.height / 2)
+      
+      chambers = []
+      chambers.push(new Chamber(newWidth, newHeight, this.offsetX, this.offsetY))
+      chambers.push(new Chamber(newWidth, newHeight, this.offsetX + newWidth + 1, this.offsetY))
+      chambers.push(new Chamber(newWidth, newHeight, this.offsetX, this.offsetY + newHeight + 1))
+      chambers.push(new Chamber(newWidth, newHeight, this.offsetX + newWidth + 1, this.offsetY + newHeight + 1))
+    }
+
+    return chambers
+  }
+
+  getInnerWalls() {
+    const kept = Math.floor(Math.random() * 4)
+
+    const points = []
+    let x = this.offsetX + Math.floor(this.width / 2)
+    let y
+    for (y = this.offsetY; y < this.offsetY + this.height; ++y) {
+      // todo: add logic for "punching a hole" in each quadrant
+      if (kept !== 0 && y < this.offsetY + Math.floor(this.height / 2)) {
+
+      }
+      points.push([x, y])
+    }
+
+    y = this.offsetY + Math.floor(this.height / 2)
+    for (x = this.offsetX; x < this.offsetX + this.width; ++x) {
+      points.push([x, y])
+    }
+
+    return points
+  }
+}
+
 export class PathMap {
   constructor(width, height, start, end, blockFrequency = 0.2) {
     this.width = width
@@ -65,6 +112,44 @@ export class PathMap {
     this.end = end
     this.blockFrequency = blockFrequency
     this.buildBlocks()
+  }
+
+  buildMap() {
+    let width = this.width
+    let height = this.height
+    const map = []
+    for (let x = 0; x < width; ++x) {
+      map.push(new Array(height))
+    }
+
+    while (width > 2 && height > 2) {
+      let newWidth = Math.floor(width / 2)
+      let newHeight = Math.floor(height / 2)
+      const kept = Math.floor(Math.random() * 4)
+
+      for (let x = 0; x < width; ++x) {
+
+      }
+      for (let i = 0; i < 4; ++i) {
+        if (i == kept) {
+          continue
+        }
+
+        switch (i) {
+          case 0:
+          break
+
+          case 1:
+          break
+
+          case 2:
+          break
+
+          case 3:
+          break
+        }
+      }
+    }
   }
 
   buildBlocks() {
