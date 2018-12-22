@@ -105,12 +105,13 @@ class Chamber {
 }
 
 export class PathMap {
-  constructor(width, height, start, end, blockFrequency = 0.2) {
+  constructor(width, height, start, end, blockFrequency = 0.2, handleUpdate = () => {}) {
     this.width = width
     this.height = height
     this.start = start
     this.end = end
     this.blockFrequency = blockFrequency
+    this.handleUpdate = handleUpdate
     this.buildBlocks()
   }
 
@@ -180,7 +181,9 @@ export class PathMap {
     const pos = Pos.toPos(rawPos)
 
     if (!pos.isEqual(this.start) && !pos.isEqual(this.end)) {
-      const newState = this.state[pos.y, pos.x] === STATES.CLEAR ? STATES.BLOCKED : STATES.CLEAR
+      const newState = this.state[pos.y][pos.x] === STATES.CLEAR ? STATES.BLOCKED : STATES.CLEAR
+      this.state[pos.y][pos.x] = newState
+      this.handleUpdate()
     }
   }
 

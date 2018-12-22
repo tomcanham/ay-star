@@ -4,91 +4,31 @@ import GoButton from './GoButton'
 import { STATES, Pos, PathMap } from '../PathMap'
 import findPath from '../findPath'
 
-const cellStyle = {
-  border: '1px solid black'
-}
-
 const getStateStyle = (state) => {
   switch(state) {
     case STATES.START:
-      return { background: 'pink' }
+      return 'pink'
 
     case STATES.END:
-      return { background: 'pink' }
+      return 'pink'
 
     case STATES.BLOCKED:
-      return { background: 'black' }
+      return 'black'
 
     case STATES.OPEN:
-      return { background: 'blue' }
+      return 'blue'
 
     case STATES.CLOSED:
-      return { background: 'red' }
+      return 'red'
 
     case STATES.TENTATIVE:
-      return { background: 'yellow' }
+      return 'yellow'
 
     case STATES.PATH:
-      return { background: 'green' }
+      return 'green'
 
     default:
-      return {}
-  }
-}
-
-class MapCell extends React.Component {
-  static propTypes = {
-    pos: PropTypes.instanceOf(Pos).isRequired,
-    cells: PropTypes.instanceOf(PathMap).isRequired,
-    style: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired
-  }
-
-  render() {
-    const { pos, cells, style, onChange } = this.props
-    const state = cells.getState(pos)
-    const styleAdd = getStateStyle(state)
-    const finalStyle = Object.assign({}, style, styleAdd)
-  
-    return <span style={finalStyle} title={state} onClick={() => onChange(pos)}>&nbsp;</span>
-  }
-}
-
-const rowStyle = {
-  display: 'flex',
-  flexDirection: 'row',
-  flexGrow: 1,
-  width: '100%'
-}
-
-class MapRow extends React.Component {
-  static propTypes = {
-    cells: PropTypes.instanceOf(PathMap).isRequired,
-    rowNumber: PropTypes.number.isRequired,
-    style: PropTypes.object.isRequired,
-    onCellChange: PropTypes.func.isRequired
-  }
-
-  render() {
-    const { cells, rowNumber, style, onCellChange } = this.props
-    const { width } = cells
-  
-    const cellObjects = []
-    const percent = Math.floor((1 / width) * 100)
-
-    for (let x = 0; x < width; ++x) {
-      const style = Object.assign({}, cellStyle, { width: `${percent}%` })
-      const pos = new Pos([x, rowNumber])
-    
-      cellObjects.push(<MapCell
-        key={`cell-${x}-${rowNumber}`}
-        pos={pos}
-        cells={cells}
-        style={style}
-        onChange={onCellChange} />)
-    }
-
-    return <div style={style}>{cellObjects}</div>
+      return 'white'
   }
 }
 
@@ -120,7 +60,7 @@ class Map extends React.Component {
       cells.setState(pos, state)
 
       ++counter
-      if (counter % 100 === 0) {
+      if (false && counter % 10 === 0) {
         await this.sleep(1)
         this.forceUpdate()
       }
@@ -149,17 +89,17 @@ class Map extends React.Component {
     const onCellChange = (pos) => cells.toggleBlocked(pos)
     const height = cells.height
     const width = cells.width
-    const percent = Math.floor((1 / width) * 100)
-    const style = Object.assign({}, rowStyle, { height: `${percent}%` })
+    const cellSize = 32
 
     let rows = []
     for (let y = 0; y < height; ++y) {
-      rows.push(<MapRow
-        key={`row-${y}`}
-        rowNumber={y}
-        cells={cells}
-        style={style}
-        onCellChange={onCellChange} />)
+      for (let x = 0; x < width; ++x) {
+        const state = cells.getState([x, y])
+        const color = getStateStyle(state)
+        rows.push(
+          <rect x={`${x * cellSize}`} y={`${y * cellSize}`} width={`${cellSize}`} height={`${cellSize}`} key={`cell-${x},${y}`} fill={color} />
+        )
+      }
     }
 
     return <div>
@@ -176,6 +116,19 @@ class Map extends React.Component {
           <button
             style={{backgroundColor: 'green', fontSize: '1.2rem', height: '50px', borderRadius: '10px'}}
             onClick={() => location.reload()}>Rebuild</button>
+        </div>
+      </div>
+      <div>
+        <div style={{ width: `${width * cellSize + 1}px`, height: `${height * cellSize + 1}px` }}>
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width={`${cellSize}`} height={`${cellSize}`} patternUnits="userSpaceOnUse">
+                <path d={`M ${cellSize} 0 L 0 0 0 ${cellSize}`} fill="none" stroke="black" stroke-width="2"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            {rows}
+          </svg>
         </div>
       </div>
       <div style={mapStyle}>{rows}</div>
