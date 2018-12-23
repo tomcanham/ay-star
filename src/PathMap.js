@@ -1,3 +1,5 @@
+import { posix } from "path";
+
 export const STATES = {
   BLOCKED: 'blocked',
   CLEAR: 'clear',
@@ -8,6 +10,25 @@ export const STATES = {
   TENTATIVE: 'tentative',
   PATH: 'path'
 }
+
+export const DIRECTIONS = {
+  NORTH: 1,
+  EAST: 2,
+  SOUTH: 4,
+  WEST: 8,
+  NONE: 0,
+  ALL: 15
+}
+
+DIRECTIONS.OPPOSITE = {
+  [DIRECTIONS.NORTH]: DIRECTIONS.SOUTH,
+  [DIRECTIONS.EAST]: DIRECTIONS.WEST,
+  [DIRECTIONS.SOUTH]: DIRECTIONS.NORTH,
+  [DIRECTIONS.WEST]: DIRECTIONS.EAST
+}
+
+DIRECTIONS.IN_ORDER = [DIRECTIONS.NORTH, DIRECTIONS.EAST, DIRECTIONS.SOUTH, DIRECTIONS.WEST]
+export const WALLS = DIRECTIONS
 
 export class Pos {
   constructor([x, y]) {
@@ -27,6 +48,31 @@ export class Pos {
     } else if (pos instanceof Array && pos.length === 2) {
       return pos
     }
+  }
+
+  inDirection(direction) {
+    let dX = 0, dY = 0
+    switch (direction) {
+      case DIRECTIONS.NORTH:
+        dY = -1
+        break
+      
+      case DIRECTIONS.EAST:
+        dX = 1
+        break
+
+      case DIRECTIONS.SOUTH:
+        dY = 1
+        break
+
+      case DIRECTIONS.WEST:
+        dX = -1
+        break
+    }
+    const x = this.x + dX
+    const y = this.y + dY
+
+    return new Pos([x, y])
   }
 
   toXY() {
@@ -54,6 +100,26 @@ export class Pos {
     const distY = this.y - pos.y
 
     return Math.sqrt(distX ** 2 + distY ** 2)
+  }
+  
+  directionTo(rawTo) {
+    const to = Pos.toPos(rawTo)
+
+    let dX = to.x - this.x
+    let dY = to.y - this.y
+    if (Math.abs(dX) + Math.abs(dY) == 1) {
+      if (dX == 1) {
+        return DIRECTIONS.EAST
+      } else if (dX == -1) {
+        return DIRECTIONS.WEST
+      } else if (dY == 1) {
+        return DIRECTIONS.SOUTH
+      } else if (dY == -1) {
+        return DIRECTIONS.NORTH
+      }
+    }
+
+    return DIRECTIONS.NONE
   }
 }
 
@@ -112,78 +178,38 @@ export class PathMap {
     this.end = end
     this.blockFrequency = blockFrequency
     this.handleUpdate = handleUpdate
-    this.buildBlocks()
+    this.build()
   }
 
-  buildMap() {
-    let width = this.width
-    let height = this.height
-    const map = []
-    for (let x = 0; x < width; ++x) {
-      map.push(new Array(height))
-    }
-
-    while (width > 2 && height > 2) {
-      let newWidth = Math.floor(width / 2)
-      let newHeight = Math.floor(height / 2)
-      const kept = Math.floor(Math.random() * 4)
-
-      for (let x = 0; x < width; ++x) {
-
-      }
-      for (let i = 0; i < 4; ++i) {
-        if (i == kept) {
-          continue
-        }
-
-        switch (i) {
-          case 0:
-          break
-
-          case 1:
-          break
-
-          case 2:
-          break
-
-          case 3:
-          break
-        }
-      }
-    }
-  }
-
-  buildBlocks() {
+  build() {
     this.state = []
+    this.walls = []
 
     for (let y = 0; y < this.height; ++y) {
       const row = []
+      const wallsRow = []
     
       for (let x = 0; x < this.width; ++x) {
         const pos = new Pos([x, y])
-    
+
         if (pos.isEqual(this.start)) {
           row.push(STATES.START)
+          wallsRow.push(WALLS.NONE)
         } else if (pos.isEqual(this.end)) {
           row.push(STATES.END)
+          wallsRow.push(WALLS.NONE)
         } else if (Math.random() < this.blockFrequency) {
-          row.push(STATES.BLOCKED)
+          row.push(STATES.CLEAR)
+          const choices = WALLS.IN_ORDER
+          wallsRow.push(choices[Math.floor(Math.random() * choices.length)])
         } else {
           row.push(STATES.CLEAR)
+          wallsRow.push(WALLS.NONE)
         }
       }
       
       this.state.push(row)
-    }
-  }
-
-  toggleBlocked(rawPos) {
-    const pos = Pos.toPos(rawPos)
-
-    if (!pos.isEqual(this.start) && !pos.isEqual(this.end)) {
-      const newState = this.state[pos.y][pos.x] === STATES.CLEAR ? STATES.BLOCKED : STATES.CLEAR
-      this.state[pos.y][pos.x] = newState
-      this.handleUpdate()
+      this.walls.push(wallsRow)
     }
   }
 
@@ -193,83 +219,60 @@ export class PathMap {
     return this.state[pos.y][pos.x]
   }
 
+  getWalls(rawPos) {
+    const pos = Pos.toPos(rawPos)
+
+    let extra = 0
+    if (pos.x == 0) {
+      extra = extra | WALLS.WEST
+    } else if (pos.x == this.width - 1) {
+      extra = extra | WALLS.EAST
+    }
+
+    if (pos.y == 0) {
+      extra = extra | WALLS.NORTH
+    } else if (pos.y == this.height - 1) {
+      extra = extra | WALLS.SOUTH
+    }
+
+    return this.walls[pos.y][pos.x] | extra
+  }
+
   setState(rawPos, newState) {
     const pos = Pos.toPos(rawPos)
 
     this.state[pos.y][pos.x] = newState
   }
 
-  isBlocked(rawPos) {
-    return this.getState(pos) === STATES.BLOCKED
-  }
-
-  isValid(rawPos, requireClear = true) {
-    const pos = Pos.toPos(rawPos)
-
-    if (!(pos.x >= 0 && pos.x < this.width && pos.y >= 0 && pos.y < this.height )) {
+  canMove(rawFromPos, direction) {
+    const fromPos = Pos.toPos(rawFromPos)
+    const toPos = fromPos.inDirection(direction)
+    
+    if (fromPos.x < 0 || fromPos.x >= this.width || fromPos.y < 0 || fromPos.y >= this.height) {
       return false
     }
-    
-    const state = this.getState(pos)
-    if (state === STATES.BLOCKED) {
+
+    if (toPos.x < 0 || toPos.x >= this.width || toPos.y < 0 || toPos.y >= this.height) {
       return false
-    } else if (state !== STATES.CLEAR && requireClear) {
+    }
+
+    if (this.walls[fromPos.y][fromPos.x] & direction) {
+      return false
+    } else if (this.walls[toPos.y][toPos.x] & DIRECTIONS.OPPOSITE[direction]) {
       return false
     } else {
       return true
     }
   }
 
-  clearStates() {
-    for (let y = 0; y < this.height; ++y) {    
-      for (let x = 0; x < this.width; ++x) {
-        const pos = new Pos([x, y])
-        const existingState = this.getState(pos)
-
-        if ([
-          STATES.OPEN,
-          STATES.CLOSED,
-          STATES.TENTATIVE,
-          STATES.PATH
-        ].includes(existingState)) {
-          if (pos.isEqual(this.start)) {
-            this.setState(pos, STATES.START)
-          } else if (pos.isEqual(this.end)) {
-            this.setState(pos, STATES.END)
-          } else {
-            this.setState(pos, STATES.CLEAR)
-          }
-        }
-      }
-    }
-  }
-
-  around(rawPos, requireClear = true, includeDiagonals = true) {
-    const pos = Pos.toPos(rawPos)
+  around(rawPos) {
+    const from = Pos.toPos(rawPos)
 
     const results = []
-    let neighbors = [
-      [-1, 0],
-      [0, -1],
-      [0, 1],
-      [1, 0]
-    ]
-
-    if (includeDiagonals) {
-      neighbors = neighbors.concat([
-        [-1, -1],
-        [-1, 1],
-        [1, -1],
-        [1, 1]
-      ])
-    }
-
-    for (const neighbor of neighbors) {
-      const [x, y] = neighbor
-      const testPos = new Pos([pos.x + x, pos.y + y])
-  
-      if (this.isValid(testPos, requireClear)) {
-        results.push(testPos)
+    for (const direction of DIRECTIONS.IN_ORDER) {  
+      if (this.canMove(from, direction)) {
+        const neighbor = from.inDirection(direction)
+        results.push(neighbor)
       }
     }
   

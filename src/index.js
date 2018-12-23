@@ -9,7 +9,7 @@ const HEIGHT = 30
 
 const start = new Pos([0, HEIGHT - 1])
 const end = new Pos([WIDTH - 1, 0])
-const BLOCKFREQUENCY = 0.25
+const BLOCKFREQUENCY = 0.85
 const includeDiagonals = true
 
 //width, height, start, end, blockFrequency = 0.2
@@ -17,7 +17,7 @@ const cells = new PathMap(WIDTH, HEIGHT, start, end, BLOCKFREQUENCY)
 
 ReactDOM.render(
   <div>
-    <Map cells={cells} />
+    <Map cells={cells} start={start} end={end} />
   </div>,
   document.getElementById('root')
 )
