@@ -182,34 +182,59 @@ export class PathMap {
   }
 
   build() {
-    this.state = []
-    this.walls = []
+    this.state = Array(this.height)
+    this.walls = Array(this.height)
 
     for (let y = 0; y < this.height; ++y) {
-      const row = []
-      const wallsRow = []
-    
+      this.state[y] = Array(this.width)
+      this.state[y].fill(STATES.CLEAR, 0, this.width - 1)
+
+      this.walls[y] = Array(this.width)
+      this.walls[y].fill(WALLS.NONE, 0, this.width - 1)
+    }
+
+    for (let y = 0; y < this.height; ++y) {
       for (let x = 0; x < this.width; ++x) {
         const pos = new Pos([x, y])
 
         if (pos.isEqual(this.start)) {
-          row.push(STATES.START)
-          wallsRow.push(WALLS.NONE)
+          this.state[y][x] = STATES.START
         } else if (pos.isEqual(this.end)) {
-          row.push(STATES.END)
-          wallsRow.push(WALLS.NONE)
+          this.state[y][x] = STATES.END
         } else if (Math.random() < this.blockFrequency) {
-          row.push(STATES.CLEAR)
           const choices = WALLS.IN_ORDER
-          wallsRow.push(choices[Math.floor(Math.random() * choices.length)])
+          const choice = choices[Math.floor(Math.random() * choices.length)]
+          this.setWall(pos, choice)
         } else {
-          row.push(STATES.CLEAR)
-          wallsRow.push(WALLS.NONE)
+          this.state[y][x] = STATES.CLEAR
         }
       }
-      
-      this.state.push(row)
-      this.walls.push(wallsRow)
+    }
+  }
+
+  setWall(rawPos, direction) {
+    const pos = Pos.toPos(rawPos)
+
+    if (this.isInBounds(pos)) {
+      this.walls[pos.y][pos.x] |= direction
+
+      const neighbor = pos.inDirection(direction) // get neighboring cell
+      if (this.isInBounds(neighbor)) {
+        this.walls[neighbor.y][neighbor.x] |= DIRECTIONS.OPPOSITE[direction]
+      }
+    }
+  }
+
+  clearWall(rawPos, direction) {
+    const pos = Pos.toPos(rawPos)
+
+    if (this.isInBounds(pos)) {
+      this.walls[pos.y][pos.x] &= ~direction
+
+      const neighbor = pos.inDirection(direction) // get neighboring cell
+      if (this.isInBounds(neighbor)) {
+        this.walls[neighbor.y][neighbor.x] &= ~DIRECTIONS.OPPOSITE[direction]
+      }
     }
   }
 
@@ -244,21 +269,19 @@ export class PathMap {
     this.state[pos.y][pos.x] = newState
   }
 
+  isInBounds(pos) {
+    return pos.x >= 0 && pos.x < this.width && pos.y >=0 && pos.y < this.height
+  }
+
   canMove(rawFromPos, direction) {
     const fromPos = Pos.toPos(rawFromPos)
     const toPos = fromPos.inDirection(direction)
     
-    if (fromPos.x < 0 || fromPos.x >= this.width || fromPos.y < 0 || fromPos.y >= this.height) {
-      return false
-    }
-
-    if (toPos.x < 0 || toPos.x >= this.width || toPos.y < 0 || toPos.y >= this.height) {
+    if (!(this.isInBounds(fromPos) && this.isInBounds(toPos)))  {
       return false
     }
 
     if (this.walls[fromPos.y][fromPos.x] & direction) {
-      return false
-    } else if (this.walls[toPos.y][toPos.x] & DIRECTIONS.OPPOSITE[direction]) {
       return false
     } else {
       return true
