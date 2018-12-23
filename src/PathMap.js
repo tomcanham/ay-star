@@ -205,8 +205,6 @@ export class PathMap {
           const choices = WALLS.IN_ORDER
           const choice = choices[Math.floor(Math.random() * choices.length)]
           this.setWall(pos, choice)
-        } else {
-          this.state[y][x] = STATES.CLEAR
         }
       }
     }
