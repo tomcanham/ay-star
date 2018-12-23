@@ -27,10 +27,15 @@ const findPath = async function ({ start,
   }
 
   const reconstructPath = async (cameFrom, current) => {
+    const path = []
     while (cameFrom.has(current)) {
+      path.unshift(current)
       await setState(current, STATES.PATH)
       current = cameFrom.get(current)
     }
+
+    path.unshift(start)
+    return path
   }
 
   let current
@@ -49,7 +54,7 @@ const findPath = async function ({ start,
 
   while (!fscore.isEmpty()) {
     const current = fscore.extractMinimum().value
-
+    
     if (posEqual(current, goal)) {
       return reconstructPath(cameFrom, current)
     }
