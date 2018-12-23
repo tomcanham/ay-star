@@ -21,3 +21,21 @@
     font-size: 1.5rem;
     border-radius: 10px
 }
+
+.map-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+}
+
+.map-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.map-image {
+    margin: 10px;
+    flex-grow: 1;
+}

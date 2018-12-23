@@ -5,7 +5,8 @@ import { STATES, WALLS, Pos, PathMap } from '../PathMap'
 import findPath from '../findPath'
 import './Map.css'
 
-const CELL_SIZE = 32
+const CELL_SIZE = 20
+const LINE_THICKNESS = 1
 
 const MapCell = ({color, walls, x, y}) => {
   const w1 = walls & WALLS.NORTH ? 'l' : 'm'
@@ -13,10 +14,10 @@ const MapCell = ({color, walls, x, y}) => {
   const w3 = walls & WALLS.SOUTH ? 'l' : 'm'
   const w4 = walls & WALLS.WEST ? 'l' : 'm'
 
-  const definition = `M ${x * CELL_SIZE} ${y * CELL_SIZE} ${w1} ${CELL_SIZE} 0 ${w2} 0 ${CELL_SIZE} ${w3} ${-CELL_SIZE} 0 ${w4} 0 ${-CELL_SIZE}`
+  const definition = `M ${x * CELL_SIZE} ${y * CELL_SIZE} ${w1} ${CELL_SIZE} 0 ${w2} 0 ${CELL_SIZE} ${w3} ${-(CELL_SIZE)} 0 ${w4} 0 ${-(CELL_SIZE)}`
   return <g>
     <rect x={`${x * CELL_SIZE}`} y={`${y * CELL_SIZE}`} width={`${CELL_SIZE}`} height={`${CELL_SIZE}`} key={`cell-${x},${y}`} fill={color} />
-    <path d={definition} stroke="black" strokeWidth="5" fill="transparent" />
+    <path d={definition} stroke="black" strokeWidth={LINE_THICKNESS} fill="transparent" />
   </g>
 }
 
@@ -114,6 +115,7 @@ class Map extends React.Component {
     const root = nodes.shift()
     const [rootX, rootY] = root
     
+    // helper function
     const getDelta = ([x1, y1], [x2, y2]) => {
       return `l ${(x2 - x1) * CELL_SIZE} ${(y2 - y1) * CELL_SIZE}`
     }
@@ -128,7 +130,7 @@ class Map extends React.Component {
     }
 
     const definition = parts.join(' ')
-    return <path d={definition} stroke="purple" strokeWidth="5" strokeDasharray="5,5" fill="transparent" />
+    return <path d={definition} stroke="purple" strokeWidth={LINE_THICKNESS} strokeDasharray="5,5" fill="transparent" />
   }
 
   render() {
@@ -159,18 +161,16 @@ class Map extends React.Component {
       pathElements = this.getSvgPath(this.state.path)
     }
 
-    return <div style={{width: '100%', display: 'flex', flexDirection: 'row'}}>
-      <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+    return <div className="map-container">
+      <div className="map-buttons">
         <GoButton onClick={() => this.solve()} />
         <button className="rebuild-button" onClick={() => this.rebuild()}>Rebuild</button>
       </div>
-      <div>
-        <div style={{ width: `${width * CELL_SIZE + 1}px`, height: `${height * CELL_SIZE + 1}px` }}>
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            {rows}
-            {pathElements}
-          </svg>
-        </div>
+      <div className="map-image">
+        <svg width="100%" height={`${CELL_SIZE * height}px`} xmlns="http://www.w3.org/2000/svg">
+          {rows}
+          {pathElements}
+        </svg>
       </div>
     </div>
   }
