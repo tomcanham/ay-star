@@ -7,6 +7,4 @@ It's interesting to note that although perhaps the most famous use of A* is for 
 
 Note that in order to allow the user to see "progress" by A*, I had to slow the render performance down by several orders of magnitude! I want to more tightly integrate the algorithmic components (open nodes, closed nodes, etc.) with React components, and allow a frame-by-frame "replay."
 
-Also, I would love to redo this using something "pretty" like SVG. Anyone wanna fork this and "spruce it up?"
-
 To build, clone the repository, run ```npm install && npm run build``` and then (assuming all goes well), open the file ```./dist/index.html```.
